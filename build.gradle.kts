@@ -31,7 +31,7 @@ dependencies {
 }
 
 group = "com.plugin"
-version = "1.0.1"
+version = "1.0.2"
 
 val javaMajorVersion = JavaVersion.VERSION_11.majorVersion
 

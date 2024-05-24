@@ -31,8 +31,8 @@ import net.runelite.api.*;
 import net.runelite.api.Point;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.widgets.InterfaceID;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.*;
 import net.runelite.client.ui.overlay.tooltip.Tooltip;
@@ -164,12 +164,23 @@ class DevToolsOverlay extends Overlay
 		{
 			if (p != local)
 			{
-				String text = p.getName() + " (A: " + p.getAnimation() + ") (P: " + p.getPoseAnimation() + ") (G: " + p.getGraphic() + ")";
+				StringBuilder s = new StringBuilder();
+				for (ActorSpotAnim sa : p.getSpotAnims())
+				{
+					s.append(sa.getId()).append(",");
+				}
+				String g = s.length() > 0 ? s.substring(0, s.length() - 1) : "-1";
+				String text = p.getName() + " (A: " + p.getAnimation() + ") (P: " + p.getPoseAnimation() + ") (G: " + g + ")";
 				OverlayUtil.renderActorOverlay(graphics, p, text, BLUE);
 			}
 		}
-
-		String text = local.getName() + " (A: " + local.getAnimation() + ") (P: " + local.getPoseAnimation() + ") (G: " + local.getGraphic() + ")";
+		StringBuilder s = new StringBuilder();
+		for (ActorSpotAnim sa : local.getSpotAnims())
+		{
+			s.append(sa.getId()).append(",");
+		}
+		String g = s.length() > 0 ? s.substring(0, s.length() - 1) : "-1";
+		String text = local.getName() + " (A: " + local.getAnimation() + ") (P: " + local.getPoseAnimation() + ") (G: " + g + ")";
 		OverlayUtil.renderActorOverlay(graphics, local, text, CYAN);
 	}
 
@@ -193,8 +204,14 @@ class DevToolsOverlay extends Overlay
 				}
 			}
 
+			StringBuilder s = new StringBuilder();
+			for (ActorSpotAnim sa : npc.getSpotAnims())
+			{
+				s.append(sa.getId()).append(",");
+			}
+			String g = s.length() > 0 ? s.substring(0, s.length() - 1) : "-1";
 			String text = composition.getName() + " (ID:" + composition.getId() + ")" +
-				" (A: " + npc.getAnimation() + ") (P: " + npc.getPoseAnimation() + ") (G: " + npc.getGraphic() + ")";
+				" (A: " + npc.getAnimation() + ") (P: " + npc.getPoseAnimation() + ") (G: " + g + ")";
 			OverlayUtil.renderActorOverlay(graphics, npc, text, color);
 		}
 	}
@@ -390,7 +407,7 @@ class DevToolsOverlay extends Overlay
 
 	private void renderInventory(Graphics2D graphics)
 	{
-		Widget inventoryWidget = client.getWidget(WidgetInfo.INVENTORY);
+		Widget inventoryWidget = client.getWidget(InterfaceID.INVENTORY, 0);
 		if (inventoryWidget == null || inventoryWidget.isHidden())
 		{
 			return;

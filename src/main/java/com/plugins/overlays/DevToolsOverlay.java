@@ -42,7 +42,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.util.List;
 import java.util.Set;
 
 @Singleton
@@ -122,10 +121,10 @@ class DevToolsOverlay extends Overlay
 
 	private void renderRoofs(Graphics2D graphics)
 	{
-		Scene scene = client.getScene();
+		Scene scene = client.getTopLevelWorldView().getScene();
 		Tile[][][] tiles = scene.getTiles();
-		byte[][][] settings = client.getTileSettings();
-		int z = client.getPlane();
+		byte[][][] settings = client.getTopLevelWorldView().getTileSettings();
+		int z = client.getTopLevelWorldView().getPlane();
 		String text = "R";
 
 		for (int x = 0; x < Constants.SCENE_SIZE; ++x)
@@ -158,7 +157,7 @@ class DevToolsOverlay extends Overlay
 
 	private void renderPlayers(Graphics2D graphics)
 	{
-		List<Player> players = client.getPlayers();
+		IndexedObjectSet<? extends Player> players = client.getTopLevelWorldView().players();
 		Player local = client.getLocalPlayer();
 
 		for (Player p : players)
@@ -176,7 +175,7 @@ class DevToolsOverlay extends Overlay
 
 	private void renderNpcs(Graphics2D graphics)
 	{
-		List<NPC> npcs = client.getNpcs();
+		IndexedObjectSet<? extends NPC> npcs = client.getTopLevelWorldView().npcs();
 		for (NPC npc : npcs)
 		{
 			NPCComposition composition = npc.getComposition();
@@ -202,10 +201,10 @@ class DevToolsOverlay extends Overlay
 
 	private void renderTileObjects(Graphics2D graphics)
 	{
-		Scene scene = client.getScene();
+		Scene scene = client.getTopLevelWorldView().getScene();
 		Tile[][][] tiles = scene.getTiles();
 
-		int z = client.getPlane();
+		int z = client.getTopLevelWorldView().getPlane();
 
 		for (int x = 0; x < Constants.SCENE_SIZE; ++x)
 		{
@@ -272,7 +271,7 @@ class DevToolsOverlay extends Overlay
 			String tooltip = String.format("World location: %d, %d, %d</br>" +
 					"Region ID: %d location: %d, %d",
 				worldLocation.getX(), worldLocation.getY(), worldLocation.getPlane(),
-				(client.isInInstancedRegion() ? WorldPoint.fromLocalInstance(client, tileLocalLocation).getRegionID() : worldLocation.getRegionID()), worldLocation.getRegionX(), worldLocation.getRegionY());
+				(client.getTopLevelWorldView().getScene().isInstance() ? WorldPoint.fromLocalInstance(client, tileLocalLocation).getRegionID() : worldLocation.getRegionID()), worldLocation.getRegionX(), worldLocation.getRegionY());
 			toolTipManager.add(new Tooltip(tooltip));
 			OverlayUtil.renderPolygon(graphics, poly, GREEN);
 		}
@@ -287,9 +286,9 @@ class DevToolsOverlay extends Overlay
 			return;
 		}
 
-		if (client.getCollisionMaps() != null)
+		if (client.getTopLevelWorldView().getCollisionMaps() != null)
 		{
-			int[][] flags = client.getCollisionMaps()[client.getPlane()].getFlags();
+			int[][] flags = client.getTopLevelWorldView().getCollisionMaps()[client.getTopLevelWorldView().getPlane()].getFlags();
 			int data = flags[tile.getSceneLocation().getX()][tile.getSceneLocation().getY()];
 
 			Set<MovementFlag> movementFlags = MovementFlag.getSetFlags(data);
@@ -427,13 +426,13 @@ class DevToolsOverlay extends Overlay
 
 	private void renderProjectiles(Graphics2D graphics)
 	{
-		for (Projectile projectile : client.getProjectiles())
+		for (Projectile projectile : client.getTopLevelWorldView().getProjectiles())
 		{
 			int projectileId = projectile.getId();
 			String text = "(ID: " + projectileId + ")";
 			int x = (int) projectile.getX();
 			int y = (int) projectile.getY();
-			LocalPoint projectilePoint = new LocalPoint(x, y);
+			LocalPoint projectilePoint = new LocalPoint(x, y, client.getTopLevelWorldView());
 			Point textLocation = Perspective.getCanvasTextLocation(client, graphics, projectilePoint, text, 0);
 			if (textLocation != null)
 			{
@@ -444,7 +443,7 @@ class DevToolsOverlay extends Overlay
 
 	private void renderGraphicsObjects(Graphics2D graphics)
 	{
-		for (GraphicsObject graphicsObject : client.getGraphicsObjects())
+		for (GraphicsObject graphicsObject : client.getTopLevelWorldView().getGraphicsObjects())
 		{
 			LocalPoint lp = graphicsObject.getLocation();
 			Polygon poly = Perspective.getCanvasTilePoly(client, lp);
